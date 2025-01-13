@@ -1,46 +1,70 @@
 @echo off
 
-set "VERSION=1"
+set "VERSION=2"
 set "TIMESTAMP_PROVIDER=iso8601_timestamp_provider.bat"
 
-if "%1" == ""          (call :print_help_prompt & goto :end)
-if "%1" == "-h"        (call :print_help_prompt & goto :end)
-if "%1" == "--help"    (call :print_help_prompt & goto :end)
-if "%1" == "-v"        (echo Version: %VERSION% & goto :end)
-if "%1" == "--version" (echo Version: %VERSION% & goto :end)
-if "%2" == ""          (call :print_help_prompt & goto :end)
-
-call :main "%1" "%2"
-
-goto :end
+call :main "%~1" "%~2" "%~3"
 
 :pick_message_label
-if "%1" == "failure" (set "%2=FAILURE" & goto :eof)
-if "%1" == "error"   (set "%2=ERROR"   & goto :eof)
-if "%1" == "warning" (set "%2=WARNING" & goto :eof)
-if "%1" == "info"    (set "%2=INFO"    & goto :eof)
-if "%1" == "debug"   (set "%2=DEBUG"   & goto :eof)
-echo Specified logging level invalid: %1
-goto :end
+setlocal
+
+set "arg1=%~1"
+set "MESSAGE_LABEL="
+
+if "%arg1%" == "1" (set "MESSAGE_LABEL=FAILURE")
+if "%arg1%" == "2" (set "MESSAGE_LABEL=ERROR")
+if "%arg1%" == "3" (set "MESSAGE_LABEL=WARNING")
+if "%arg1%" == "4" (set "MESSAGE_LABEL=INFO")
+if "%arg1%" == "5" (set "MESSAGE_LABEL=DEBUG")
+
+if "%MESSAGE_LABEL%" == "" (
+    echo Specified logging level invalid: %arg1%
+    endlocal
+    goto :end
+)
+
+endlocal & set "%~2=%MESSAGE_LABEL%"
+goto :eof
 
 :get_current_timestamp
-if exist %TIMESTAMP_PROVIDER% (
-    for /f %%i in ('call %TIMESTAMP_PROVIDER%') do (set "%1=%%i" & goto :eof)
+setlocal
+
+if not exist "%TIMESTAMP_PROVIDER%" (
+    echo File not found: %TIMESTAMP_PROVIDER%
+    endlocal
+    goto :end
 )
-echo File not found: %TIMESTAMP_PROVIDER%
-goto :end
+
+set "TIMESTAMP="
+for /f %%i in ('call "%TIMESTAMP_PROVIDER%"') do (set "TIMESTAMP=%%i")
+
+endlocal & set "%~1=%TIMESTAMP%"
+goto :eof
 
 :main
-set "LOGGING_LEVEL=%1"
-set "MESSAGE_CONTENT=%2"
+setlocal
 
-call :pick_message_label %LOGGING_LEVEL% MESSAGE_LABEL
+rem Argument 3 is used only for detecting, if too many arguments were passed to the script.
+set "arg1=%~1"
+set "arg2=%~2"
+set "arg3=%~3"
+
+if "%arg1%" == ""          (call :print_help_prompt & endlocal & goto :end)
+if "%arg1%" == "-h"        (call :print_help_prompt & endlocal & goto :end)
+if "%arg1%" == "--help"    (call :print_help_prompt & endlocal & goto :end)
+if "%arg1%" == "-v"        (echo Version: %VERSION% & endlocal & goto :end)
+if "%arg1%" == "--version" (echo Version: %VERSION% & endlocal & goto :end)
+if "%arg2%" == ""          (call :print_help_prompt & endlocal & goto :end)
+if "%arg2%" NEQ ""         (call :print_help_prompt & endlocal & goto :end)
+
+call :pick_message_label "%arg1%" MESSAGE_LABEL
 call :get_current_timestamp TIMESTAMP
 
-set "MESSAGE=[%MESSAGE_LABEL%][%TIMESTAMP%] %MESSAGE_CONTENT%"
+set "MESSAGE=[%MESSAGE_LABEL%][%TIMESTAMP%] %arg2%"
 echo %MESSAGE%
 
-goto :eof
+endlocal
+goto :end
 
 :print_help_prompt
 echo USAGE:
@@ -52,8 +76,8 @@ echo     Format of generated log messages: [LOGGING_LEVEL_LABEL][TIMESTAMP] MESS
 echo.
 echo ARGUMENTS:
 echo     LOGGING_LEVEL
-echo         Logging level, on which given message should be logged.
-echo         Available logging levels: failure, error, warning, info, debug
+echo         Numeric representation of logging level, on which given message should be logged.
+echo         Available logging levels: 1 (FAILURE), 2 (ERROR), 3 (WARNING), 4 (INFO), 5 (DEBUG)
 echo.
 echo     MESSAGE_CONTENT
 echo         Message content to be logged.
