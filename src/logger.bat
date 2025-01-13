@@ -55,7 +55,7 @@ if "%arg1%" == "--help"    (call :print_help_prompt & endlocal & goto :end)
 if "%arg1%" == "-v"        (echo Version: %VERSION% & endlocal & goto :end)
 if "%arg1%" == "--version" (echo Version: %VERSION% & endlocal & goto :end)
 if "%arg2%" == ""          (call :print_help_prompt & endlocal & goto :end)
-if "%arg2%" NEQ ""         (call :print_help_prompt & endlocal & goto :end)
+if "%arg3%" NEQ ""         (call :print_help_prompt & endlocal & goto :end)
 
 call :pick_message_label "%arg1%" MESSAGE_LABEL
 call :get_current_timestamp TIMESTAMP
