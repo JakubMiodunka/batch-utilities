@@ -1,9 +1,10 @@
 @echo off
 
-set "VERSION=2"
+set "VERSION=3"
 set "TIMESTAMP_PROVIDER=iso8601_timestamp_provider.bat"
 
 call :main "%~1" "%~2" "%~3"
+goto :end
 
 :pick_message_label
 setlocal
@@ -49,13 +50,13 @@ set "arg1=%~1"
 set "arg2=%~2"
 set "arg3=%~3"
 
-if "%arg1%" == ""          (call :print_help_prompt & endlocal & goto :end)
-if "%arg1%" == "-h"        (call :print_help_prompt & endlocal & goto :end)
-if "%arg1%" == "--help"    (call :print_help_prompt & endlocal & goto :end)
-if "%arg1%" == "-v"        (echo Version: %VERSION% & endlocal & goto :end)
-if "%arg1%" == "--version" (echo Version: %VERSION% & endlocal & goto :end)
-if "%arg2%" == ""          (call :print_help_prompt & endlocal & goto :end)
-if "%arg3%" NEQ ""         (call :print_help_prompt & endlocal & goto :end)
+if "%arg1%" == ""          (call :print_help_prompt & endlocal & goto :eof)
+if "%arg1%" == "-h"        (call :print_help_prompt & endlocal & goto :eof)
+if "%arg1%" == "--help"    (call :print_help_prompt & endlocal & goto :eof)
+if "%arg1%" == "-v"        (echo Version: %VERSION% & endlocal & goto :eof)
+if "%arg1%" == "--version" (echo Version: %VERSION% & endlocal & goto :eof)
+if "%arg2%" == ""          (call :print_help_prompt & endlocal & goto :eof)
+if "%arg3%" NEQ ""         (call :print_help_prompt & endlocal & goto :eof)
 
 call :pick_message_label "%arg1%" MESSAGE_LABEL
 call :get_current_timestamp TIMESTAMP
@@ -64,9 +65,11 @@ set "MESSAGE=[%MESSAGE_LABEL%][%TIMESTAMP%] %arg2%"
 echo %MESSAGE%
 
 endlocal
-goto :end
+goto :eof
 
 :print_help_prompt
+setlocal
+
 echo USAGE:
 echo     logger.bat [LOGGING_LEVEL] [MESSAGE_CONTENT]
 echo.
@@ -87,7 +90,9 @@ echo     -h, --help
 echo         Prints this help prompt.
 echo.
 echo AUTHOR: Jakub Miodunka
+
+endlocal
 goto :eof
 
 :end
-exit
+exit /b

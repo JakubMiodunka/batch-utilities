@@ -1,19 +1,14 @@
 @echo off
 
-set "VERSION=1"
+set "VERSION=2"
 
-if "%1" == "-h"        (call :print_help_prompt & goto :end)
-if "%1" == "--help"    (call :print_help_prompt & goto :end)
-if "%1" == "-v"        (echo Version: %VERSION% & goto :end)
-if "%1" == "--version" (echo Version: %VERSION% & goto :end)
-
-call :get_iso_timestamp TIMESTAMP
-echo %TIMESTAMP%
-
+call :main "%~1"
 goto :end
 
 :get_iso_timestamp
-for /f "tokens=2 delims==" %%i in ('wmic OS get localdatetime /value') do set DATETIME=%%i
+setlocal
+
+for /f "tokens=2 delims==" %%i in ('wmic OS get localdatetime /value') do set "DATETIME=%%i"
 
 set "YEAR=%DATETIME:~0,4%"
 set "MONTH=%DATETIME:~4,2%"
@@ -34,10 +29,13 @@ set "UTC_OFFSET_MINUTES=0%UTC_OFFSET_MINUTES%"
 set "UTC_OFFSET_MINUTES=%UTC_OFFSET_MINUTES:~-2%"
 
 set "ISO_TIMESTAMP=%YEAR%-%MONTH%-%DAY%T%HOUR%:%MINUTE%:%SECOND%%UTC_OFFSET_SIGN%%UTC_OFFSET_HOURS%:%UTC_OFFSET_MINUTES%"
-set %1=%ISO_TIMESTAMP%
+
+endlocal & set "%~1=%ISO_TIMESTAMP%"
 goto :eof
 
 :print_help_prompt
+setlocal
+
 echo USAGE:
 echo     iso8601_timestamp_provider.bat
 echo.
@@ -45,11 +43,24 @@ echo DESCRIPTION:
 echo     Generates timestamp of a current moment formatted accordingly to ISO 8601 and prints int to std-out.
 echo.
 echo AUTHOR: Jakub Miodunka
+
+endlocal
 goto :eof
 
-:print_script_version
-echo Version: %VERSION%
+:main
+setlocal
+
+set "arg1=%~1"
+
+if "%arg1%" == "-v"        (echo Version: %VERSION% & endlocal & goto :eof)
+if "%arg1%" == "--version" (echo Version: %VERSION% & endlocal & goto :eof)
+if "%arg1%" NEQ ""        (call :print_help_prompt & endlocal & goto :eof)
+
+call :get_iso_timestamp TIMESTAMP
+echo %TIMESTAMP%
+
+endlocal
 goto :eof
 
 :end
-exit
+exit /b
