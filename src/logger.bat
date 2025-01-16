@@ -1,77 +1,46 @@
 @echo off
 
-set "VERSION=3"
+rem Defining constants.
+set "VERSION=4"
 set "TIMESTAMP_PROVIDER=iso8601_timestamp_provider.bat"
+set "TIMESTAMP_FORMAT=--long"   & rem Provided directly to timestamp provider as option/argument.
 
+rem Script entry point.
 call :main "%~1" "%~2" "%~3"
 goto :end
 
+rem Defining subroutines.
 :pick_message_label
 setlocal
 
-set "arg1=%~1"
-set "MESSAGE_LABEL="
+set "LOGGING_LEVEL=%~1"
 
-if "%arg1%" == "1" (set "MESSAGE_LABEL=FAILURE")
-if "%arg1%" == "2" (set "MESSAGE_LABEL=ERROR")
-if "%arg1%" == "3" (set "MESSAGE_LABEL=WARNING")
-if "%arg1%" == "4" (set "MESSAGE_LABEL=INFO")
-if "%arg1%" == "5" (set "MESSAGE_LABEL=DEBUG")
+if "%LOGGING_LEVEL%" == "1" (set "MESSAGE_LABEL=FAILURE")
+if "%LOGGING_LEVEL%" == "2" (set "MESSAGE_LABEL=ERROR")
+if "%LOGGING_LEVEL%" == "3" (set "MESSAGE_LABEL=WARNING")
+if "%LOGGING_LEVEL%" == "4" (set "MESSAGE_LABEL=INFO")
+if "%LOGGING_LEVEL%" == "5" (set "MESSAGE_LABEL=DEBUG")
 
-if "%MESSAGE_LABEL%" == "" (
-    echo Specified logging level invalid: %arg1%
-    endlocal
-    goto :end
-)
+if "%MESSAGE_LABEL%" == "" ( echo Invalid logging level specified: %LOGGING_LEVEL% & endlocal & exit -1)
 
-endlocal & set "%~2=%MESSAGE_LABEL%"
+endlocal && set "%~2=%MESSAGE_LABEL%"
 goto :eof
 
 :get_current_timestamp
 setlocal
 
-if not exist "%TIMESTAMP_PROVIDER%" (
-    echo File not found: %TIMESTAMP_PROVIDER%
-    endlocal
-    goto :end
-)
+if not exist "%TIMESTAMP_PROVIDER%" ( echo File not found: %TIMESTAMP_PROVIDER% & endlocal & exit -1)
 
-set "TIMESTAMP="
-for /f %%i in ('call "%TIMESTAMP_PROVIDER%"') do (set "TIMESTAMP=%%i")
+for /f %%i in ('call "%TIMESTAMP_PROVIDER%" "%TIMESTAMP_FORMAT%"') do (set "TIMESTAMP=%%i")
 
-endlocal & set "%~1=%TIMESTAMP%"
-goto :eof
-
-:main
-setlocal
-
-rem Argument 3 is used only for detecting, if too many arguments were passed to the script.
-set "arg1=%~1"
-set "arg2=%~2"
-set "arg3=%~3"
-
-if "%arg1%" == ""          (call :print_help_prompt & endlocal & goto :eof)
-if "%arg1%" == "-h"        (call :print_help_prompt & endlocal & goto :eof)
-if "%arg1%" == "--help"    (call :print_help_prompt & endlocal & goto :eof)
-if "%arg1%" == "-v"        (echo Version: %VERSION% & endlocal & goto :eof)
-if "%arg1%" == "--version" (echo Version: %VERSION% & endlocal & goto :eof)
-if "%arg2%" == ""          (call :print_help_prompt & endlocal & goto :eof)
-if "%arg3%" NEQ ""         (call :print_help_prompt & endlocal & goto :eof)
-
-call :pick_message_label "%arg1%" MESSAGE_LABEL
-call :get_current_timestamp TIMESTAMP
-
-set "MESSAGE=[%MESSAGE_LABEL%][%TIMESTAMP%] %arg2%"
-echo %MESSAGE%
-
-endlocal
+endlocal && set "%~1=%TIMESTAMP%"
 goto :eof
 
 :print_help_prompt
 setlocal
 
 echo USAGE:
-echo     logger.bat [LOGGING_LEVEL] [MESSAGE_CONTENT]
+echo     logger.bat [LOGGING_LEVEL] [MESSAGE_CONTENT] [OPTION]
 echo.
 echo DESCRIPTION:
 echo     Formulates log messages according to specified parameters and prints in to std-out.
@@ -84,12 +53,41 @@ echo         Available logging levels: 1 (FAILURE), 2 (ERROR), 3 (WARNING), 4 (I
 echo.
 echo     MESSAGE_CONTENT
 echo         Message content to be logged.
+echo.
+echo OPTIONS:
 echo     -v, --version
 echo         Prints version of the script.
 echo     -h, --help
 echo         Prints this help prompt.
 echo.
 echo AUTHOR: Jakub Miodunka
+echo VERSION: %VERSION%
+
+endlocal
+goto :eof
+
+:main
+setlocal
+
+set "ARG1=%~1"
+set "ARG2=%~2"
+set "ARG3=%~3"
+
+rem Argument 3 is used only for detecting, if too many arguments were passed to the script.
+if "%ARG3%" NEQ ""         (call :print_help_prompt & endlocal & goto :eof)
+
+if "%ARG1%" == ""          (call :print_help_prompt & endlocal & goto :eof)
+if "%ARG1%" == "-h"        (call :print_help_prompt & endlocal & goto :eof)
+if "%ARG1%" == "--help"    (call :print_help_prompt & endlocal & goto :eof)
+if "%ARG1%" == "-v"        (echo Version: %VERSION% & endlocal & goto :eof)
+if "%ARG1%" == "--version" (echo Version: %VERSION% & endlocal & goto :eof)
+if "%ARG2%" == ""          (call :print_help_prompt & endlocal & goto :eof)
+
+call :pick_message_label "%ARG1%" MESSAGE_LABEL
+call :get_current_timestamp TIMESTAMP
+
+set "MESSAGE=[%MESSAGE_LABEL%][%TIMESTAMP%] %ARG2%"
+echo %MESSAGE%
 
 endlocal
 goto :eof
