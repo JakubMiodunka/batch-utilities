@@ -10,6 +10,7 @@ Repository contains various of commonly needed functionalities implemented as Ba
 
 ## Functionalities
 
+* */src/file_sorter.bat* - Sorts files contained by specified repository into separate sub-directories basing on their extension.
 * */src/iso8601_timestamp_provider.bat* - Generates timestamp of a current moment formatted accordingly to
 [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) standard. Provides many formatting options to fit within various use cases.
 * */src/logger.bat* - Basic CLI-based logger. Generates log messages in standardized, well defined format.
@@ -26,4 +27,4 @@ Repository contains various of commonly needed functionalities implemented as Ba
 
 ## License
 
-This project is licensed under the MIT License - see the *LICENSE.md* file for details.
+This project is licensed under the MIT License - see the *LICENSE* file for details.
