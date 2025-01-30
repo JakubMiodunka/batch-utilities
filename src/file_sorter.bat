@@ -54,15 +54,20 @@ if "%ARG1%" == "--version" (echo Version: %VERSION% & endlocal & goto :eof)
 set "DIRECTORY_PATH=%ARG1%"
 if not exist "%DIRECTORY_PATH%" ( echo Directory not found: %DIRECTORY_PATH% & endlocal & exit -1)
 
-for /f %%i in ('dir /b /a-d-h-s /s "%DIRECTORY_PATH%" ^| findstr "\."') do (
-    set "FILE_PATH=%%~fi"
-    for %%j in ("!FILE_PATH!") do set "FILE_EXTENSION=%%~xj"
+set "CURRENT_WORKING_DIRECTORY_PATH=%CD%"
+cd /d "%DIRECTORY_PATH%"
+
+for /f %%i in ('dir /b /a:-d-h-s "." ^| findstr "\."') do (
+    set "FILE_NAME=%%~fi"
+    for %%j in ("!FILE_NAME!") do set "FILE_EXTENSION=%%~xj"
 
     set "SUB_DIRECTORY_PATH=!DIRECTORY_PATH!\!FILE_EXTENSION:~1!"
     if not exist "!SUB_DIRECTORY_PATH!" (mkdir "!SUB_DIRECTORY_PATH!")
 
-    move  /-Y "!FILE_PATH!" "!SUB_DIRECTORY_PATH!"
+    move  /-Y "!FILE_NAME!" "!SUB_DIRECTORY_PATH!"
 )
+
+cd /d "%CURRENT_WORKING_DIRECTORY_PATH%"
 
 endlocal
 goto :eof
