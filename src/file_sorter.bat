@@ -1,7 +1,7 @@
 @echo off
 
 rem Defining constants.
-set "VERSION=1"
+set "VERSION=2"
 
 rem Script entry point.
 call :main "%~1" "%~2"
